@@ -14,11 +14,11 @@ project_dir <- project_dir_from_script(script_dir)
 data_dir <- data_dir_from_env(project_dir)
 output_dir <- output_dir_from_env(project_dir, "family_venn")
 
-cmbl_file <- Sys.getenv("CMBL_FAMILY_FILE", unset = file.path(data_dir, "CMBL科级数据.csv"))
-ncbi_file <- Sys.getenv("NCBI_FAMILY_FILE", unset = file.path(data_dir, "NCBI科级数据.csv"))
+cmbl_file <- Sys.getenv("CMBL_FAMILY_FILE", unset = file.path(data_dir, "CMBL_family_data.csv"))
+ncbi_file <- Sys.getenv("NCBI_FAMILY_FILE", unset = file.path(data_dir, "NCBI_family_data.csv"))
 morphology_file <- Sys.getenv(
   "MORPHOLOGY_FAMILY_FILE",
-  unset = file.path(data_dir, "浙江形态学科级数据.csv")
+  unset = file.path(data_dir, "zhejiang_morphology_family_data.csv")
 )
 
 read_family_column <- function(path, family_column = "family") {
