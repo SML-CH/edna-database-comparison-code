@@ -16,12 +16,12 @@ output_dir <- output_dir_from_env(project_dir, "bray_curtis_similarity")
 
 morphology_file <- Sys.getenv(
   "MORPHOLOGY_FAMILY_FILE",
-  unset = file.path(data_dir, "浙江形态学科级数据.csv")
+  unset = file.path(data_dir, "zhejiang_morphology_family_data.csv")
 )
 
 edna_file <- Sys.getenv(
   "EDNA_FAMILY_FILE",
-  unset = file.path(data_dir, "NCBI科级数据.csv")
+  unset = file.path(data_dir, "NCBI_family_data.csv")
 )
 
 calculate_bray_curtis_similarity <- function(morphology_data, edna_data) {
