@@ -1,84 +1,56 @@
-script_dir <- {
-  file_arg <- grep("^--file=", commandArgs(FALSE), value = TRUE)
-  if (length(file_arg) > 0) {
-    dirname(normalizePath(sub("^--file=", "", file_arg[[1]]), winslash = "/", mustWork = FALSE))
-  } else {
-    normalizePath(getwd(), winslash = "/", mustWork = FALSE)
-  }
-}
-source(file.path(script_dir, "_shared.R"), encoding = "UTF-8")
+# 
+setwd("E:")
 
-ensure_packages(c("dplyr", "ggplot2", "ggpubr", "gridExtra", "irr"))
 
-project_dir <- project_dir_from_script(script_dir)
-data_dir <- data_dir_from_env(project_dir)
-output_dir <- output_dir_from_env(project_dir, "wqi_regression_and_kappa")
+# load package
+library(dplyr)  # 
+library(ggplot2)  # 
+library(cowplot)  # 
+library(ggpubr)  # 
+library(gridExtra)  #
+#####relation of observed and predicted values####
+#load csv
+data_river<- read.csv("NCBI_BMWP_75TH_TOP_200_Importance_OTU.csv", header = TRUE, row.names = 1)
+#calculate R2 and RMSE
+r2 <- cor(data_river$Observed_BMWP, data_river$Predicted_BMWP)^2
+rmse <- sqrt(mean((data_river$Observed_BMWP - data_river$Predicted_BMWP)^2))
 
-prediction_file <- Sys.getenv(
-  "WQI_PREDICTION_FILE",
-  unset = file.path(data_dir, "Taxonomy-free_WQI_25th_top_200_importance_OTU.csv")
-)
+cat("R²:", round(r2, 4), "\n")
+cat("RMSE:", round(rmse, 4), "\n")
 
-wqi_env_file <- Sys.getenv("WQI_ENV_FILE", unset = file.path(data_dir, "WQI.csv"))
-env_file <- Sys.getenv("ENV_FILE", unset = file.path(data_dir, "WQI.csv"))
-classification_scheme <- Sys.getenv("WQI_CLASSIFICATION_SCHEME", unset = "none")
+# plot
+NCBI_BMWP_25th <- ggscatter(data_river, x = "Observed_BMWP", y = "Predicted_BMWP",
+                             size = 3,
+                             color = "#2e2e2e",
+                             alpha = 0.75,
+                             add = "reg.line",
+                             add.params = list(
+                               color = "#0072FFFF",
+                               fill = "#8EC7FFFF",
+                               alpha = 0.25,
+                               size = 1.6
+                             ),
+                             conf.int = TRUE) +
+  annotate("text", x = 0, y = 190, 
+           label = paste0("R² = ", round(r2, 3), 
+                          "\nRMSE = ", round(rmse, 3),
+                          "\np < 0.001"),  
+           size = 5, hjust = 0) +
+  xlab("Measured BMWP") +
+  ylab("Predicted BMWP") +
+  coord_cartesian(xlim = c(0,250), ylim = c(0, 200)) +
+  theme(panel.border = element_rect(color = "black", fill = NA, size = 1.2)) +
+  theme(aspect.ratio = 1) +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        text = element_text(size = 12),
+        axis.title = element_text(size = 14),
+        axis.text = element_text(size = 12))
 
-plot_prediction_scatter <- function(data, output_dir) {
-  r2 <- cor(data$Observed_WQI, data$Predicted_WQI)^2
-  rmse_value <- rmse(data$Observed_WQI, data$Predicted_WQI)
+print(NCBI_BMWP_25th)
 
-  plot <- ggpubr::ggscatter(
-    data,
-    x = "Observed_WQI",
-    y = "Predicted_WQI",
-    size = 2,
-    color = "#2e2e2e",
-    alpha = 0.7,
-    add = "reg.line",
-    add.params = list(
-      color = "#2c91e0",
-      fill = "lightblue",
-      alpha = 0.3,
-      size = 1.2
-    ),
-    conf.int = TRUE
-  ) +
-    ggplot2::annotate(
-      "text",
-      x = 40,
-      y = 90,
-      label = paste0("R2 = ", round(r2, 3), "\nRMSE = ", round(rmse_value, 3), "\np < 0.001"),
-      size = 5,
-      hjust = 0
-    ) +
-    ggplot2::xlab("Measured WQI") +
-    ggplot2::ylab("Predicted WQI") +
-    ggplot2::coord_cartesian(xlim = c(40, 100), ylim = c(40, 100)) +
-    ggplot2::theme_bw() +
-    ggplot2::theme(
-      aspect.ratio = 1,
-      panel.border = ggplot2::element_rect(color = "black", fill = NA, linewidth = 1.2),
-      panel.grid.major = ggplot2::element_blank(),
-      panel.grid.minor = ggplot2::element_blank(),
-      text = ggplot2::element_text(size = 12),
-      axis.title = ggplot2::element_text(size = 14),
-      axis.text = ggplot2::element_text(size = 12)
-    )
+# save picture
+ggsave("BMWP_prediction_plot.png", data_river_plot, width = 8, height = 8, dpi = 300)
+ggsave("NCBI_BMWP_75.pdf",NCBI_BMWP_25th, height = 4, width = 4,dpi = 300)
 
-  metrics <- data.frame(
-    R2 = r2,
-    RMSE = rmse_value
-  )
-
-  ggplot2::ggsave(
-    file.path(output_dir, "wqi_measured_vs_predicted.pdf"),
-    plot,
-    height = 6,
-    width = 6,
-    dpi = 300
-  )
-
-  write.csv(metrics, file.path(output_dir, "wqi_prediction_metrics.csv"), row.names = FALSE)
-
-  list(plot = plot, metrics = metrics)
-}
