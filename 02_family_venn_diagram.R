@@ -1,49 +1,108 @@
-script_dir <- {
-  file_arg <- grep("^--file=", commandArgs(FALSE), value = TRUE)
-  if (length(file_arg) > 0) {
-    dirname(normalizePath(sub("^--file=", "", file_arg[[1]]), winslash = "/", mustWork = FALSE))
-  } else {
-    normalizePath(getwd(), winslash = "/", mustWork = FALSE)
-  }
-}
-source(file.path(script_dir, "_shared.R"), encoding = "UTF-8")
+############################################################
+## CMBL vs NCBI vs Morphology family-level comparison
+## Venn / Euler diagram with area-proportional scaling
+############################################################
 
-ensure_packages(c("eulerr", "grid"))
+# Load required packages
+library(eulerr)
+library(dplyr)
+library(grid)
 
-project_dir <- project_dir_from_script(script_dir)
-data_dir <- data_dir_from_env(project_dir)
-output_dir <- output_dir_from_env(project_dir, "family_venn")
+# Set working directory
+setwd("E:/PhD/Database_comparison")
 
-cmbl_file <- Sys.getenv("CMBL_FAMILY_FILE", unset = file.path(data_dir, "CMBL_family_data.csv"))
-ncbi_file <- Sys.getenv("NCBI_FAMILY_FILE", unset = file.path(data_dir, "NCBI_family_data.csv"))
-morphology_file <- Sys.getenv(
-  "MORPHOLOGY_FAMILY_FILE",
-  unset = file.path(data_dir, "zhejiang_morphology_family_data.csv")
+# =========================
+# 1. Read data
+# =========================
+set1 <- read.csv("CMBL_family_level_data.csv", header = TRUE, stringsAsFactors = FALSE)
+set2 <- read.csv("NCBI_family_level_data.csv", header = TRUE, stringsAsFactors = FALSE)
+set3 <- read.csv("Zhejiang_morphological_family_level_data.csv", header = TRUE, stringsAsFactors = FALSE)
+
+# =========================
+# 2. Extract family names
+#    Remove NA, empty values, and duplicates
+# =========================
+CMBL_families <- set1$family %>%
+  na.omit() %>%
+  trimws() %>%
+  unique()
+
+NCBI_families <- set2$family %>%
+  na.omit() %>%
+  trimws() %>%
+  unique()
+
+Morphology_families <- set3$family %>%
+  na.omit() %>%
+  trimws() %>%
+  unique()
+
+# =========================
+# 3. Create list of sets
+# =========================
+family_data <- list(
+  CMBL = CMBL_families,
+  NCBI = NCBI_families,
+  Morphology = Morphology_families
 )
 
-read_family_column <- function(path, family_column = "family") {
-  data <- read_csv_checked(path, header = TRUE, check.names = FALSE)
+# =========================
+# 4. Fit area-proportional Euler / Venn diagram
+# =========================
+fit <- euler(family_data)
 
-  if (!family_column %in% names(data)) {
-    stop("Column not found in ", path, ": ", family_column, call. = FALSE)
-  }
-
-  clean_character_set(data[[family_column]])
-}
-
-family_sets <- list(
-  CMBL = read_family_column(cmbl_file),
-  NCBI = read_family_column(ncbi_file),
-  Morphology = read_family_column(morphology_file)
-)
-
-fit <- eulerr::euler(family_sets)
-
-sink(file.path(output_dir, "family_level_euler_fit.txt"))
+# View fitting performance
 print(fit)
-sink()
 
-pdf(file.path(output_dir, "family_level_area_proportional_venn.pdf"), width = 7, height = 6)
+# =========================
+# 5. High-impact journal style plotting
+# =========================
+plot(
+  fit,
+  
+  # Fill colors: soft, low saturation, publication-ready
+  fills = list(
+    fill = c("#E68D3D", "#E26472", "#6270B7"),
+    alpha = 0.55
+  ),
+  
+  # Circle borders
+  edges = list(
+    col = "grey25",
+    lwd = 1.2
+  ),
+  
+  # Set labels
+  labels = list(
+    font = 2,
+    fontsize = 15,
+    col = "grey10"
+  ),
+  
+  # Region quantities (counts)
+  quantities = list(
+    fontsize = 14,
+    font = 2,
+    col = "grey10"
+  ),
+  
+  # Do not show percentages, only counts
+  legend = FALSE,
+  
+  # Background
+  main = NULL
+)
+
+############################################################
+## Export high-resolution figure
+############################################################
+
+pdf(
+  file = "Family_level_area_proportional_Venn.pdf",
+  width = 7,
+  height = 6
+)
+
 plot(
   fit,
   fills = list(
@@ -67,7 +126,5 @@ plot(
   legend = FALSE,
   main = NULL
 )
+
 dev.off()
-
-print(fit)
-
