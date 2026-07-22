@@ -14,7 +14,7 @@ library(ranger)
 library(metagenomeSeq)
 library(Biobase)
 
-setwd("E:")
+setwd("E:/PhD/Database_comparison/China_freshwater_benthic_database")
 
 ##### load data#####
 raw_data <- read.csv(
