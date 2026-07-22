@@ -13,7 +13,6 @@ This repository contains the ten R analysis scripts used for the eDNA database c
 | 8 | `08_lowocv_random_forest.R` | Performs leave-one-watershed-out cross-validation with training-set CSS normalization, training-only OTU ranking, feature-number selection, and random-forest prediction of WQI. |
 | 9 | `09_GLM Analysis of Watershed and Year Effects.R` | Uses GLMs to quantify watershed and year effects on observed and predicted WQI and BMWP values after excluding Qiantang River samples. It reports R-squared, incremental R-squared, and nested-model p-values without calculating eta-squared or writing output files. |
 | 10 | `10_rarefaction_loocv_random_forest.R` | Performs leakage-free LOOCV with training-set rarefaction normalization and random-forest prediction of BMWP, including feature-number sensitivity and fold-specific rarefaction-depth and OTU-importance results. |
-| — | `_shared.R` | Provides shared helper functions used for package checking, paths, data import, and common model-performance metrics. |
 ## Data availability and paths
 Raw data and manuscript files are not included in this repository. Each script documents the expected input file names near its beginning. Before running a script, place the required input files in an appropriate local folder and update its `setwd()` call or input path.
 The main input categories are:
