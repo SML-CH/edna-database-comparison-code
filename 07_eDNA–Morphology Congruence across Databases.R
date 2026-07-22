@@ -9,7 +9,7 @@ library(ggpubr)
 library(patchwork)
 
 # Set directory
-setwd("E:/PhD_Year1-2/Database_comparison/eDNA_revision_results/Congruence_analysis")
+setwd("E:/PhD/Database_comparison/eDNA_revision_results/Congruence_analysis")
 
 # Read data
 CMBL <- read.csv("CMBL_congruence_analysis.csv", check.names = FALSE)
