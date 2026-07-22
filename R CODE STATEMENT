@@ -1,69 +1,76 @@
 # eDNA Database Comparison Code
-
-This repository contains the R scripts used for the eDNA database comparison manuscript. The scripts have been cleaned for public release: comments are in English, repeated code has been moved into reusable functions, and local absolute paths have been replaced by configurable data and output directories.
-
-## Repository Layout
-
-| Script | Purpose |
-| --- | --- |
-| `scripts/01_bray_curtis_similarity.R` | Calculates site-level Bray-Curtis similarity between morphology and eDNA family-level matrices. |
-| `scripts/02_family_venn_diagram.R` | Draws an area-proportional family-level Euler/Venn diagram for CMBL, NCBI, and morphology datasets. |
-| `scripts/03_loocv_random_forest_wqi.R` | Runs random forest LOOCV for WQI prediction with training-set CSS normalization and fold-wise feature selection. |
-| `scripts/04_wqi_regression.R` | Plots measured vs. predicted WQI, exports model metrics, and optionally runs weighted Kappa and environmental correlation plots. |
-| `scripts/05_site_rarefaction_curves.R` | Draws site-level rarefaction curves for raw, CMBL-annotated, and NCBI-annotated OTU matrices. |
-| `scripts/06_otu_importance_barplot.R` | Draws horizontal bar plots for important OTUs, colored by class. |
-| `scripts/_shared.R` | Shared helpers for package checks, paths, data loading, and simple metrics. |
-
-## Data
-
-Raw data and manuscript files are not included in this code repository. By default, scripts look for input files in a local `data/` folder and write outputs to `outputs/<analysis-name>/`.
-
-You can also set environment variables before running the scripts:
-
-```r
-Sys.setenv(EDNA_DATA_DIR = "path/to/input/data")
-Sys.setenv(EDNA_OUTPUT_DIR = "path/to/output/folder")
-```
-
-Several scripts also support file-specific environment variables, such as `MORPHOLOGY_FAMILY_FILE`, `EDNA_FAMILY_FILE`, `CMBL_FAMILY_FILE`, `WQI_OTU_FILE`, `WQI_PREDICTION_FILE`, and `OTU_IMPORTANCE_FILE`.
-
-## Packages
-
-Install the required R packages before running the scripts:
-
+This repository contains the ten R analysis scripts used for the eDNA database comparison manuscript. Together, these scripts cover community congruence, taxonomic overlap, random-forest prediction, regression analysis, rarefaction, watershed validation, and generalized linear model (GLM) analysis.
+## Code overview
+| No. | R code | Main purpose |
+| --- | --- | --- |
+| 1 | `01_bray_curtis_similarity.R` | Calculates site-level Bray–Curtis similarity between morphology and eDNA family-level community matrices and identifies sites with high congruence. |
+| 2 | `02_family_venn_diagram.R` | Produces an area-proportional Euler/Venn diagram comparing the family-level composition detected by CMBL, NCBI, and morphological identification. |
+| 3 | `03_css_loocv_random_forest.R` | Performs leakage-free leave-one-out cross-validation (LOOCV) with training-set cumulative sum scaling (CSS), random-forest prediction, and feature-number sensitivity analysis. |
+| 4 | `04_regression.R` | Evaluates relationships between observed and predicted biomonitoring index values and produces regression plots and associated statistical summaries. |
+| 5 | `05_site_rarefaction_curves.R` | Generates site-level OTU rarefaction curves for unannotated, CMBL-annotated, and NCBI-annotated community matrices. |
+| 6 | `06_otu_importance_barplot.R` | Visualizes important OTUs and their taxonomic classes and includes plotting routines for species-overlap comparisons. |
+| 7 | `07_eDNA–Morphology Congruence across Databases.R` | Compares sequencing depth and eDNA/morphology richness between low- and high-congruence sites for the CMBL and NCBI databases using Wilcoxon tests. |
+| 8 | `08_lowocv_random_forest.R` | Performs leave-one-watershed-out cross-validation with training-set CSS normalization, training-only OTU ranking, feature-number selection, and random-forest prediction of WQI. |
+| 9 | `09_GLM Analysis of Watershed and Year Effects.R` | Uses GLMs to quantify watershed and year effects on observed and predicted WQI and BMWP values after excluding Qiantang River samples. It reports R-squared, incremental R-squared, and nested-model p-values without calculating eta-squared or writing output files. |
+| 10 | `10_rarefaction_loocv_random_forest.R` | Performs leakage-free LOOCV with training-set rarefaction normalization and random-forest prediction of BMWP, including feature-number sensitivity and fold-specific rarefaction-depth and OTU-importance results. |
+| — | `_shared.R` | Provides shared helper functions used for package checking, paths, data import, and common model-performance metrics. |
+## Data availability and paths
+Raw data and manuscript files are not included in this repository. Each script documents the expected input file names near its beginning. Before running a script, place the required input files in an appropriate local folder and update its `setwd()` call or input path.
+The main input categories are:
+- family-level morphology, CMBL, and NCBI community matrices;
+- unannotated and database-annotated OTU count matrices;
+- observed WQI or BMWP values;
+- random-forest prediction tables;
+- watershed and year metadata;
+- CMBL and NCBI congruence-analysis tables.
+For reproducibility, input data should not be modified during analysis. Write generated tables and figures to a separate output directory where the relevant script produces files. Code 9 is intentionally console-only and does not create output files.
+## Required R packages
+Install the CRAN packages used across Codes 1–10:
 ```r
 install.packages(c(
+  "caret",
+  "cowplot",
   "dplyr",
+  "e1071",
+  "eulerr",
   "ggplot2",
   "ggpubr",
+  "ggrepel",
   "gridExtra",
-  "irr",
+  "patchwork",
+  "purrr",
   "RColorBrewer",
   "ranger",
+  "readr",
+  "readxl",
+  "stringr",
+  "tidyr",
+  "tidyverse",
   "vegan",
-  "eulerr"
+  "viridis"
 ))
-
+```
+Codes using CSS normalization additionally require Bioconductor packages:
+```r
 if (!requireNamespace("BiocManager", quietly = TRUE)) {
   install.packages("BiocManager")
 }
-
-BiocManager::install(c("metagenomeSeq", "Biobase"))
+BiocManager::install(c("Biobase", "metagenomeSeq"))
 ```
-
-The environmental-correlation section of `04_wqi_regression_and_kappa.R` additionally uses `mice` when environmental input files are available.
-
-## Example
-
-From the repository root:
-
+Not every package is needed for every script. The `library()` statements at the beginning of each code file identify its exact requirements.
+## Running the analyses
+Run a script from the repository root after updating its working directory and confirming that its expected input files are available. For example:
 ```r
-source("scripts/01_bray_curtis_similarity.R")
+source("01_bray_curtis_similarity.R")
 ```
-
 or from a terminal:
-
 ```sh
-Rscript scripts/01_bray_curtis_similarity.R
+Rscript 01_bray_curtis_similarity.R
 ```
 
+## Reproducibility notes
+- Codes 3, 8, and 10 carry out normalization and feature processing within the training data of each validation fold to reduce information leakage.
+- Random seeds are specified in the cross-validation scripts where stochastic procedures are used.
+- Code 8 evaluates transferability by leaving an entire watershed out of model training.
+- Code 9 excludes Qiantang River observations before estimating watershed and year effects.
+- Check matrix orientation carefully: some input tables store OTUs in rows and samples in columns, whereas modeling tables generally use samples in rows.
