@@ -6,7 +6,7 @@
 library(vegan)
 library(tidyverse)
 
-setwd("E:/PhD_Year/Database_comparison/eDNA_submission/Revision_results")
+setwd("E:/PhD/Database_comparison/eDNA_submission/Revision_results")
 # Read data
 morph_data <- read.csv("Zhejiang_morphological_family_level_data.csv", row.names = 1, stringsAsFactors = FALSE)
 edna_data  <- read.csv("NCBI_family_level_data.csv", row.names = 1, stringsAsFactors = FALSE)
