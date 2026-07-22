@@ -1,7 +1,7 @@
 # ================================================================
 # Watershed and year variance analysis (excluding Qiantang River; no eta squared; no result files)
 # ================================================================
-
+setwd("E:/PhD/Database_comparison/eDNA_revision_results")
 # Install missing packages if needed:
 required_packages <- c("readr", "dplyr", "purrr", "tidyr", "stringr")
 missing_packages <- required_packages[
