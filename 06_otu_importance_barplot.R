@@ -7,6 +7,7 @@
 library(ggplot2)
 library(dplyr)
 library(RColorBrewer)
+library(ggpubr)
 
 # Step 1: Copy the table from PDF (including header)
 # Select the table content in PDF, press Ctrl+C (Windows) or Command+C (Mac)
@@ -109,3 +110,67 @@ ggsave("OTU_importance_CMBL_WQI.png",
 ggsave("OTU_importance_CMBL_WQI.pdf", 
        plot = p,
        width = 12, height = plot_height, dpi = 300)
+
+
+####  boxplot  ####
+#### Single group boxplot ####
+# Import data
+data <- read.delim("clipboard", header = TRUE)
+
+# Extract value column
+x <- data$value
+
+# Draw vertical boxplot
+boxplot(x,
+        horizontal = FALSE,   # Vertical
+        col = "white",
+        border = "black",
+        main = "",
+        ylab = "")
+
+# Calculate mean
+mean_x <- mean(x, na.rm = TRUE)
+
+# Add mean as red plus sign (bold)
+points(1, mean_x, col = "red", pch = 3, cex = 1.8, lwd = 2)
+
+# Label mean value next to it (red, right-aligned)
+text(1.2, mean_x, round(mean_x, 2), col = "red")
+
+# Calculate five-number summary (min, Q1, median, Q3, max)
+qs <- fivenum(x)
+
+# Label five-number summary on the left
+text(0.8, qs, labels = round(qs, 2), adj = 1)
+
+#### Two-group boxplot ####
+# Set working directory
+setwd("E:/PhD_Year1-2/Database_comparison/eDNA_submission/Revision_results")
+
+# Import data
+data <- read.csv("Species_overlap_rate_boxplot.csv", header = TRUE)
+
+# Boxplot + points + high-impact journal style
+p <- ggplot(data, aes(x = Group, y = Value)) +
+  # Boxplot, black outline, no fill, bold whisker lines
+  geom_boxplot(width = 0.6, fill = NA, color = "black", outlier.shape = NA, size = 1) +
+  # Jittered points
+  geom_jitter(aes(color = Group), width = 0.15, size = 2, alpha = 0.8) +
+  # Point colors
+  scale_color_manual(values = c("#1f77b4", "#ff7f0e")) +
+  # Theme
+  theme_classic(base_size = 14) +
+  theme(
+    legend.position = "none",
+    axis.title = element_text(face = "bold"),
+    axis.text = element_text(color = "black"),
+    axis.line = element_line(size = 1)  # Bold axes
+  ) +
+  # Significance annotation
+  stat_compare_means(method = "t.test", label = "p.signif", size = 5) +
+  labs(x = "", y = "") +
+  # Add full border
+  theme(panel.border = element_rect(color = "black", fill = NA, size = 1.2))
+
+# Display the plot
+print(p)
