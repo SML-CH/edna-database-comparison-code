@@ -17,7 +17,7 @@ library(Biobase)
 library(tidyr)
 
 ##### Set working directory #####
-setwd("E:/PhD_Year1-2/Database_comparison/China_freshwater_benthic_database")
+setwd("E:/PhD/Database_comparison/China_freshwater_benthic_database")
 
 ##### Read data #####
 data <- read.csv(
