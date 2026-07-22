@@ -72,5 +72,4 @@ Rscript 01_bray_curtis_similarity.R
 - Codes 3, 8, and 10 carry out normalization and feature processing within the training data of each validation fold to reduce information leakage.
 - Random seeds are specified in the cross-validation scripts where stochastic procedures are used.
 - Code 8 evaluates transferability by leaving an entire watershed out of model training.
-- Code 9 excludes Qiantang River observations before estimating watershed and year effects.
 - Check matrix orientation carefully: some input tables store OTUs in rows and samples in columns, whereas modeling tables generally use samples in rows.
