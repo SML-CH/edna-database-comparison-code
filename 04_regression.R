@@ -1,5 +1,5 @@
 # 
-setwd("E:/PhD_Year1-2/Database_comparison/")
+setwd("E:/PhD/Database_comparison/")
 
 
 # load package
