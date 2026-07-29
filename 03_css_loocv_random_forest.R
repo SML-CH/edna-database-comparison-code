@@ -336,42 +336,38 @@ ggsave(
 )
 
 ############################################################
-## Optional: Save importance for each fold
+## Summarize OTUs that entered the top 200 in each round
 ############################################################
 
 importance_all_folds <- bind_rows(all_selected_otus)
 
+# Total number of valid LOOCV rounds completed
+n_valid_folds <- n_distinct(importance_all_folds$Fold)
+
+# Keep only the top 200 OTUs by importance in each round
+top200_all_folds <- importance_all_folds %>%
+  group_by(Fold) %>%
+  arrange(desc(Importance), .by_group = TRUE) %>%
+  slice_head(n = 200) %>%
+  ungroup()
+
+# Summarize frequency and importance of OTUs selected into the top 200
+otu_selection_summary <- top200_all_folds %>%
+  group_by(OTU) %>%
+  summarise(
+    Selected_frequency = n(),
+    Selected_ratio = Selected_frequency / n_valid_folds,
+    Mean_importance = mean(Importance, na.rm = TRUE),
+    Median_importance = median(Importance, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(
+    desc(Selected_frequency),
+    desc(Mean_importance)
+  )
+
 write.csv(
-  importance_all_folds,
-  "CMBL_BMWP_CSS_no_leakage_fold_OTU_importance.csv",
+  otu_selection_summary,
+  "CMBL-WQI_CSS_no_leak_OTU_top200_frequency_permutation.csv",
   row.names = FALSE
 )
-
-cat("\n=== No-leakage version of feature number sensitivity analysis completed ===\n")
-print(performance_df)
-
-############################################################
-## Optional: Compare with leakage version (if previously run)
-############################################################
-
-# if (file.exists("CMBL_BMWP_CSS_feature_number_performance.csv")) {
-#   leaked_perf <- read.csv("CMBL_BMWP_CSS_feature_number_performance.csv")
-#   leaked_perf$Version <- "With leakage"
-#   no_leak_perf <- performance_df
-#   no_leak_perf$Version <- "No leakage"
-#   
-#   compare_df <- rbind(
-#     leaked_perf[, c("Top_n", "RMSE", "MAE", "R2", "Version")],
-#     no_leak_perf[, c("Top_n", "RMSE", "MAE", "R2", "Version")]
-#   )
-#   
-#   p_compare <- ggplot(compare_df, aes(x = Top_n, y = R2, color = Version)) +
-#     geom_line(linewidth = 1) +
-#     geom_point(size = 2.5) +
-#     scale_x_continuous(breaks = top_n_values) +
-#     labs(x = "Number of retained OTUs", y = expression(R^2)) +
-#     theme_classic(base_size = 13) +
-#     theme(axis.text = element_text(color = "black"))
-#   
-#   ggsave("CMBL_BMWP_CSS_leakage_comparison_R2_curve.png", p_compare, width = 6, height = 4.5, dpi = 300)
-# }
