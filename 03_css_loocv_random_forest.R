@@ -173,7 +173,7 @@ for (i in seq_len(n_sample)) {
     mtry = mtry_all,
     min.node.size = 1,
     splitrule = "variance",
-    seed = 1234
+    seed =  100000 + i
   )
   
   importance_scores <- importance(rf_importance)
@@ -216,7 +216,7 @@ for (i in seq_len(n_sample)) {
       mtry = mtry_top,
       min.node.size = 1,
       splitrule = "variance",
-      seed = 1234
+      seed = 200000 + i * 100 + match(top_n, top_n_values)
     )
     
     pred <- predict(rf_model, data = test_top)$predictions
